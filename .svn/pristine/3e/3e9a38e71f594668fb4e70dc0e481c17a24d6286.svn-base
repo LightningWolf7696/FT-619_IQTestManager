@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{fde467b7-d8af-4a16-a332-b6d020b0214d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MyClass">
+      <UniqueIdentifier>{8e7cd285-e960-4cc1-8441-d46b2663d58c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MyClass\CUSTOMIZE_TEST">
+      <UniqueIdentifier>{65e0e5e7-b9e5-4dba-89b8-cc8d7e6b4fdf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MyClass\GetTargetPower">
+      <UniqueIdentifier>{66982d18-cdbe-4763-926e-e24c145b21be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MyClass\ParserCableLoss">
+      <UniqueIdentifier>{6256c75a-20c9-4137-bab0-78d1eb30f281}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="IQTestManager.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="res\IQTestManager.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="IQTestManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommFunc.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="MyClass\CustomizeTest.cpp">
+      <Filter>MyClass\CUSTOMIZE_TEST</Filter>
+    </ClCompile>
+    <ClCompile Include="MyClass\GetTargetPower.cpp">
+      <Filter>MyClass\GetTargetPower</Filter>
+    </ClCompile>
+    <ClCompile Include="MyClass\ParserCableLoss.cpp">
+      <Filter>MyClass\ParserCableLoss</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IQTestManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommFunc.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MyClass\CustomizeTest.h">
+      <Filter>MyClass\CUSTOMIZE_TEST</Filter>
+    </ClInclude>
+    <ClInclude Include="IQTestManagerDef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyDef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyClass\GetTargetPower.h">
+      <Filter>MyClass\GetTargetPower</Filter>
+    </ClInclude>
+    <ClInclude Include="MyClass\ParserCableLoss.h">
+      <Filter>MyClass\ParserCableLoss</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="IQTestManager.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

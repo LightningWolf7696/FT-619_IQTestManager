@@ -1,0 +1,31 @@
+; IQTestManager.def : Declares the module parameters for the DLL.
+
+LIBRARY
+
+EXPORTS
+    ; Explicit exports can go here
+	LOAD_GUI_INFORMATION
+	RestartDutTest
+	CleanToDutParameter
+	SetToDutParameter
+	PreShootToDutParameter
+	CustomizeTest
+	StartFrameModulatedTx
+	TxEvmReturn
+	TxPowerReturn
+	TxPpmReturn
+	TxLoLeakageReturn
+	TxMaskPercentReturn
+	GetTargetPower
+	StartRxPacketReceive
+	GetRxPacketCount
+	;GetTestCableLoss
+	ParserWiFiCableLossToDut
+	BtTxReturn
+	BtStartFrameModulatedTx
+	BtGetTargetPower
+	BtGetPowerIndex
+	BtResetRxPacketCount
+	BtStartRxPacketReceive
+	BtStopRxPacketReceive
+	BtGetRxPacketCount
