@@ -71,6 +71,7 @@ private:
 	CArray <SET_PARAMETER, SET_PARAMETER> m_ParamArray;
 	CArray <IQFACT_PARAMETER, IQFACT_PARAMETER> m_IQFactInput;
 	CArray <IQFACT_PARAMETER, IQFACT_PARAMETER> m_IQFactOutput;
+    CArray <IQFACT_PARAMETER, IQFACT_PARAMETER> m_IQFactSriptOutputParam;
 	CArray <OUTPUT_TO_SFCS_DATA, OUTPUT_TO_SFCS_DATA> m_SfcsArray;
 
 	TM_RETURN SyncTestMode();
@@ -85,6 +86,10 @@ private:
 	BOOL FileParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszStart, LPSTR lpszStop, LPSTR lpszRunInfo);
 	BOOL FilterString(BOOL bStartRev, BOOL bStopRev, CString strSource, LPSTR lpszStart, LPSTR lpszStop, CString &strResult, LPSTR lpszRunInfo);
 	BOOL ParseIQInputParam(CString &strRaw, IQFACT_PARAMETER &stParameter, BOOL &find);
+    BOOL LoadOutputIQScriptFile(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszSectionName, LPSTR lpszRunInfo);
+    BOOL FileOutputParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszStart, LPSTR lpszRunInfo);
+    BOOL ParseIQOutputParam(CString &strRaw, IQFACT_PARAMETER &stParameter, BOOL &find);
+	BOOL GetIQfactOutput(IQFACT_PARAMETER stParameter);
 	BOOL SetParameterToTestManager(IQFACT_PARAMETER stParameter, LPSTR lpszRunInfo);
 	BOOL UpdateWifiDutParameter(LPSTR ActionName, DUT_PARAM DutParam, EXT_DUT_PARAM ExtDutParam, LPSTR lpszRunInfo);
 	BOOL UpdateBtDutParameter(LPSTR ActionName, BT_DUT_PARAM DutParam, EXT_DUT_PARAM ExtDutParam, LPSTR lpszRunInfo);
@@ -118,7 +123,7 @@ private:
 	BOOL UploadIQfactOutput(IQFACT_PARAMETER stParameter);
 	BOOL PreTestEvent(LPSTR name, LPSTR lpszRunInfo);
 	BOOL PostTestEvent(LPSTR ActionName, LPSTR lpszRunInfo);
-	void FileDataToTestLog(OUTPUT_LOG_TYPE eType, LPSTR lpszFileName);
+	BOOL FileDataToTestLog(OUTPUT_LOG_TYPE eType, LPSTR lpszFileName);
 	TM_RETURN SyncFileType();
 	TM_RETURN FileDelete();
 	TM_RETURN FileOutput();

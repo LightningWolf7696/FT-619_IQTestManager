@@ -31,5 +31,5 @@ private:
 	}CABLELOSS, *pCABLELOSS;
 	CABLELOSS	m_CableLoss;
 	TCHAR		m_DestFileName[MAX_PATH];
-
+    TCHAR       m_Rx_DestFileName[MAX_PATH];
 };
