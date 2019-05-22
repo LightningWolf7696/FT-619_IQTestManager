@@ -455,13 +455,13 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
 		goto FAILED;
 	}
 
-    if(bOutputMsg)
+    if(g_GlobalInfo.TraceMessage)
     {
         TCHAR referenceScriptBuff[DLL_INFO_SIZE]={0};
         strCopy(referenceScriptBuff, m_ReferenceScript);
         IQFACT_PARAMETER stParameter={0};
 
-        if(!LoadOutputIQScriptFile(bOutputMsg, referenceScriptBuff, ActionName, szMessage)) goto ERRORED;
+        if(!LoadOutputIQScriptFile(g_GlobalInfo.TraceMessage, referenceScriptBuff, ActionName, szMessage)) goto ERRORED;
         for(int i=0; i<m_IQFactSriptOutputParam.GetSize(); i++)
         {
             stParameter = m_IQFactSriptOutputParam.GetAt(i);
@@ -609,7 +609,7 @@ BOOL CCustomizeTest::FileOutputParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR
                     int tmp = strTemp.Find("<");
                     if(tmp != -1)
                     {
-                        printf("11");
+                       // printf("11");
                         bResult = ParseIQOutputParam(strTemp, stParameter, bFind);
                         if(bFind)	
                             m_IQFactSriptOutputParam.Add(stParameter);                   
@@ -782,8 +782,8 @@ NOT_FOUND:
 
 BOOL CCustomizeTest::GetIQfactOutput(IQFACT_PARAMETER stParameter)
 {
-    int iValue;
-    double dbValue;
+    int iValue=0;
+    double dbValue=0.0;
     TCHAR szValue[DLL_INFO_SIZE]={0};
     TCHAR szMessage[DLL_INFO_SIZE]={0};
     BOOL bRtn=FALSE;
