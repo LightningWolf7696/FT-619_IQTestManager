@@ -1,5 +1,6 @@
 #pragma once
 #include "../CommFunc.h"
+#include "FT619Function.h"
 
 class CCustomizeTest
 {
@@ -7,7 +8,6 @@ public:
 	CCustomizeTest(void);
 public:
 	~CCustomizeTest(void);
-
 
 private:
 	typedef struct _SCRIPT_PARAMETER
@@ -46,16 +46,17 @@ private:
 	}TEST_PARAMETER;
 
 	SCRIPT_PARAMETER				m_ScriptParam;
-	REQUIRED_SCRIPT_PARAMETER		m_RequiredParam;
+	REQUIRED_SCRIPT_PARAMETER  m_RequiredParam;
 	TEST_PARAMETER					m_TestParam;
 	funcGetMessage					m_cbListMessage;
 	funcGetMessage					m_cbXmlMessage;
 	funcGetMessage					m_cbSfcsSpecMessage;
 	funcGetMessage					m_cbSfcsResultMessage;
 	PERRORREPORT					m_pErrorReport;
-	TCHAR							m_ReferenceScript[MAX_PATH];
+	TCHAR							   m_ReferenceScript[MAX_PATH];
 
 public:
+   FT619 Fun_619;
 	BOOL Clean();
 	BOOL SetParameter(LPSTR ParameterName,LPSTR ParameterValue);
 	BOOL PreTest(LPSTR lpszRunInfo);
@@ -71,8 +72,7 @@ private:
 	CArray <SET_PARAMETER, SET_PARAMETER> m_ParamArray;
 	CArray <IQFACT_PARAMETER, IQFACT_PARAMETER> m_IQFactInput;
 	CArray <IQFACT_PARAMETER, IQFACT_PARAMETER> m_IQFactOutput;
-    CArray <IQFACT_PARAMETER, IQFACT_PARAMETER> m_IQFactSriptOutputParam;
-	CArray <OUTPUT_TO_SFCS_DATA, OUTPUT_TO_SFCS_DATA> m_SfcsArray;
+   CArray <OUTPUT_TO_SFCS_DATA, OUTPUT_TO_SFCS_DATA> m_SfcsArray;
 
 	TM_RETURN SyncTestMode();
 	BOOL GetTestParameter(LPSTR lpszKey, LPSTR lpszValue, int nSize, int length=0);
@@ -86,10 +86,6 @@ private:
 	BOOL FileParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszStart, LPSTR lpszStop, LPSTR lpszRunInfo);
 	BOOL FilterString(BOOL bStartRev, BOOL bStopRev, CString strSource, LPSTR lpszStart, LPSTR lpszStop, CString &strResult, LPSTR lpszRunInfo);
 	BOOL ParseIQInputParam(CString &strRaw, IQFACT_PARAMETER &stParameter, BOOL &find);
-    BOOL LoadOutputIQScriptFile(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszSectionName, LPSTR lpszRunInfo);
-    BOOL FileOutputParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszStart, LPSTR lpszRunInfo);
-    BOOL ParseIQOutputParam(CString &strRaw, IQFACT_PARAMETER &stParameter, BOOL &find);
-	BOOL GetIQfactOutput(IQFACT_PARAMETER stParameter);
 	BOOL SetParameterToTestManager(IQFACT_PARAMETER stParameter, LPSTR lpszRunInfo);
 	BOOL UpdateWifiDutParameter(LPSTR ActionName, DUT_PARAM DutParam, EXT_DUT_PARAM ExtDutParam, LPSTR lpszRunInfo);
 	BOOL UpdateBtDutParameter(LPSTR ActionName, BT_DUT_PARAM DutParam, EXT_DUT_PARAM ExtDutParam, LPSTR lpszRunInfo);
@@ -132,4 +128,5 @@ private:
 	BOOL ParseRawData(CString src, int &dest, CString start, CString stop);
 	BOOL QCA_WifiTxCalData(LPSTR lpszRunInfo);
 	BOOL RemoveSfcsDuplicate();
+   BOOL GetIQfactOutput(IQFACT_PARAMETER stParameter);
 };

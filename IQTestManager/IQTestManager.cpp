@@ -216,7 +216,7 @@ BOOL CIQTestManagerApp::LoadTestManagerDll(LPSTR lpszRunInfo)
 		return FALSE;
 	}else{
 		TM_RegisterTechnologyDll	=(P_TM_RegisterTechnologyDll)	GetProcAddress	(hDLL,"TM_RegisterTechnologyDll");
-		TM_Run						=(P_TM_Run)						GetProcAddress	(hDLL,"TM_Run");
+		TM_Run						   =(P_TM_Run)						GetProcAddress	(hDLL,"TM_Run");
 		TM_ClearParameters			=(P_TM_ClearParameters)			GetProcAddress	(hDLL,"TM_ClearParameters");
 		TM_AddDoubleParameter		=(P_TM_AddDoubleParameter)		GetProcAddress	(hDLL,"TM_AddDoubleParameter");
 		TM_AddIntegerParameter		=(P_TM_AddIntegerParameter)		GetProcAddress	(hDLL,"TM_AddIntegerParameter");

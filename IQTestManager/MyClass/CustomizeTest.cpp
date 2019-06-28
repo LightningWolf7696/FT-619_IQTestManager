@@ -153,7 +153,7 @@ BOOL CCustomizeTest::GetTestParameter(LPSTR lpszKey, int& lpszValue)
 
 TM_RETURN CCustomizeTest::SyncTestMode()
 {
-	BOOL bRtn = FALSE;
+	BOOL  bRtn = FALSE;
 	TCHAR szCmd[MAX_PATH]={0};
 	COMMON_TEST_MODE eMode=CMODE_NULL;
 	TCHAR szMessage[DLL_INFO_SIZE]={0};
@@ -309,7 +309,6 @@ TM_RETURN CCustomizeTest::RunIQFact()
 	strCopy(szCmd, _T("TYPE"));
 	if(!GetTestParameter(szCmd, szData, sizeof(szData))) goto NOT_FOUND;
 
-
 	for(int idx=0 ; idx<IQF_TYPE_NULL; idx++)
 	{		
 		if(strcmp(szData, IQFactTypeTable[idx]) == NULL)
@@ -386,7 +385,7 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
 	BOOL bSameTest=FALSE;
 	static TCHAR PrevTestType[64]={0};
 	IQFACT_PARAMETER stParameter;
-
+   
 	strCopy(szCmd, _T("ERRORCODE"));
 	GetTestParameter(szCmd, m_TestParam.ErrorReport.ErrorCode, sizeof(m_TestParam.ErrorReport.ErrorCode));
 	strCopy(szCmd, _T("ERRORMSG"));
@@ -414,7 +413,6 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
 			sprintf_s(szFileName, sizeof(szFileName),"%s%s",g_GlobalInfo.szLocalPath, &szData[2]);
 		else		
 			strCopy(szFileName, szData);
-
 		if(!LoadIQScriptFile(bOutputMsg, szFileName, ActionName, szMessage)) goto ERRORED;
 	}
 
@@ -458,16 +456,21 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
     if(g_GlobalInfo.TraceMessage)
     {
         TCHAR referenceScriptBuff[DLL_INFO_SIZE]={0};
-        strCopy(referenceScriptBuff, m_ReferenceScript);
-        IQFACT_PARAMETER stParameter={0};
 
-        if(!LoadOutputIQScriptFile(g_GlobalInfo.TraceMessage, referenceScriptBuff, ActionName, szMessage)) goto ERRORED;
-        for(int i=0; i<m_IQFactSriptOutputParam.GetSize(); i++)
-        {
-            stParameter = m_IQFactSriptOutputParam.GetAt(i);
-            GetIQfactOutput(stParameter);
+        strCopy(referenceScriptBuff, m_ReferenceScript);
+        if(strncmp(referenceScriptBuff, _T(".\\"),2) == 0)
+           sprintf_s(referenceScriptBuff, sizeof(referenceScriptBuff),"%s%s",g_GlobalInfo.szLocalPath, &m_ReferenceScript[2]);
+        else		
+           strCopy(referenceScriptBuff, m_ReferenceScript);
+
+        if(!Fun_619.LoadOutputIQScriptFile(referenceScriptBuff, ActionName, szMessage)) goto ERRORED;
+        for(int i=0;i<Fun_619.GetIQFactParamArraySize(); ++i){
+           IQFACT_PARAMETER var;
+           strcpy(var.name, Fun_619.GetIQFactParamArrayDataName(i));
+           strcpy(var.value, Fun_619.GetIQFactParamArrayDataName(i));
+           var.type = Fun_619.GetIQFactParamArrayDataType(i);
+           GetIQfactOutput(var); 
         }
-        m_IQFactSriptOutputParam.RemoveAll();
     }
 
 	if(!ExtOutParameter(szMessage)) goto ERRORED;
@@ -482,6 +485,7 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
 	return TM_RETURN_PASS;
 
 FAILED:	
+   if(eMode == CMODE_IQFACT){
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
 	if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
@@ -492,21 +496,29 @@ FAILED:
 	}
 	CCommFunc::FillErrorReport(m_pErrorReport, ENABLE_SFCS, m_TestParam.ErrorReport.ErrorCode, szDetail, m_TestParam.ErrorReport.ErrorMsg,  ActionName, TEST_FAIL);
 	return TM_RETURN_FAIL;
+   }else
+      return TM_RETURN_FAIL;
 
 ERRORED:
+   if(eMode == CMODE_IQFACT){
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
 	if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
 	CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, szDetail, szMessage,  ActionName, TEST_FAIL);
 	return TM_RETURN_ERROR;
+  }else
+      return TM_RETURN_ERROR;
 
 NOT_FOUND:
+   if(eMode == CMODE_IQFACT){
 	sprintf_s(szMessage, DLL_INFO_SIZE, "Can not find parameter,[Name: %s]", szCmd);
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
 	if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
 	CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, szDetail, szMessage,  ActionName, TEST_FAIL);
 	return TM_RETURN_ERROR;
+    }else
+      return TM_RETURN_ERROR;
 }
 BOOL CCustomizeTest::LoadIQScriptFile(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszSectionName, LPSTR lpszRunInfo)
 {
@@ -557,86 +569,6 @@ BOOL CCustomizeTest::FileParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszS
 
 	return TRUE;
 
-}
-
-BOOL CCustomizeTest::LoadOutputIQScriptFile(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszSectionName, LPSTR lpszRunInfo)
-{
-    CString strStrat;
-    strStrat.Format("\t%s", lpszSectionName);
-    return FileOutputParser(bOutputMsg, lpszFileName, strStrat.GetBuffer(), lpszRunInfo);	
-}
-
-BOOL CCustomizeTest::FileOutputParser(BOOL bOutputMsg, LPSTR lpszFileName, LPSTR lpszStart, LPSTR lpszRunInfo)
-{
-    TCHAR szMessage[DLL_INFO_SIZE]={0};
-    FILE *stream;
-    int FileNo;
-    long streamLength, ActuallyRead;
-    TCHAR *Content = NULL;
-    CString strData="", strResult="";
-    BOOL bFind=FALSE, bResult=FALSE;
-    IQFACT_PARAMETER stParameter;
-    errno_t err;
-   
-    if(err = fopen_s(&stream, lpszFileName,"rb") == NULL)
-    {
-        CString strTemp;
-        int functionPos,keyWordPos,outputParamStart,outputParamEnd,len;
-
-        FileNo = _fileno(stream);
-        streamLength = _filelength(FileNo);
-
-        Content = (TCHAR*)malloc((size_t)(streamLength+1));
-        memset(Content, 0x00, (streamLength+1));
-        fseek(stream, SEEK_SET, 0);
-        ActuallyRead = (long)fread(Content, sizeof(TCHAR), streamLength, stream);
-        fclose(stream) ;
-        strData.Format("%s", Content);
-        if(Content)	free(Content);
-
-        functionPos = strData.Find(lpszStart);
-        if(functionPos != -1)
-        {
-            keyWordPos = strData.Find("#Return Values:",functionPos);
-            while(1)
-            {
-                outputParamStart = strData.Find("\t",keyWordPos);
-                outputParamEnd   = strData.Find("\r\n",outputParamStart);
-                if((outputParamStart != -1) &&(outputParamEnd   != -1))  
-                {
-                    len = outputParamEnd - outputParamStart;
-                    strTemp = strData.Mid(outputParamStart,len);
-                    int tmp = strTemp.Find("<");
-                    if(tmp != -1)
-                    {
-                       // printf("11");
-                        bResult = ParseIQOutputParam(strTemp, stParameter, bFind);
-                        if(bFind)	
-                            m_IQFactSriptOutputParam.Add(stParameter);                   
-                        keyWordPos = outputParamEnd;
-                    }
-                    else
-                        break;
-                }
-                else
-                {
-                   sprintf_s(lpszRunInfo, DLL_INFO_SIZE, "Can not Find Param");
-                   return FALSE;
-                }
-            }
-        }
-        else
-        {
-           sprintf_s(lpszRunInfo, DLL_INFO_SIZE, "Can not Find Section,[Name:%s]", lpszStart);
-           return FALSE; 
-        }
-    }
-    else
-    {
-        sprintf_s(lpszRunInfo, DLL_INFO_SIZE, "Can not open file,[Name:%s]", lpszFileName);
-        return FALSE;
-    }
-    return TRUE;
 }
 
 BOOL CCustomizeTest::FilterString(BOOL bStartRev, BOOL bStopRev, CString strSource, LPSTR lpszStart, LPSTR lpszStop, CString &strResult, LPSTR lpszRunInfo)
@@ -736,72 +668,6 @@ NOT_FOUND:
 	return TRUE;
 }
 
-BOOL CCustomizeTest::ParseIQOutputParam(CString &strRaw, IQFACT_PARAMETER &stParameter, BOOL &find)
-{
-    CString strTmp, strData;
-    int addr=SEARCH_NOT_FOUND, addr2=SEARCH_NOT_FOUND, addrNext=SEARCH_NOT_FOUND;
-
-    /*addrNext = addr = strRaw.Find("\r");
-    if(addr == SEARCH_NOT_FOUND) goto NOT_FOUND;
-    strTmp = strRaw.Left(addr-1); */
-    addr = strRaw.Find("<");
-    if(addr == SEARCH_NOT_FOUND) goto NOT_FOUND;
-    addr2 = strRaw.Find("[");
-    if(addr2 == SEARCH_NOT_FOUND) goto NOT_FOUND;
-    strData = strRaw.Mid(addr+1,addr2-addr-1);
-    strData.Trim();
-    strCopy(stParameter.name, strData);
- 
-    addr = strRaw.Find("]");
-    strData = strRaw.Mid(addr2+1,addr-addr2-1);
-    strData.Trim();
-   
-    if(strData.CompareNoCase(_T("Integer")) == 0)
-        stParameter.type = IQ_INTERFACE_TYPE_INT;
-    else if(strData.CompareNoCase(_T("Double")) == 0)
-        stParameter.type = IQ_INTERFACE_TYPE_DOUBLE;
-    else if(strData.CompareNoCase(_T("String")) == 0)
-        stParameter.type = IQ_INTERFACE_TYPE_STRING;
-    else
-        goto NOT_FOUND;
-
- /*   addr = strTmp.Find("=");
-    strData = strTmp.Mid(addr+1);
-    strData.Trim();
-    strCopy(stParameter.value, strData);
-    strRaw = strRaw.Mid(addrNext+1); */
-    find = TRUE;
-    return TRUE;
-
-NOT_FOUND:
-    find = FALSE;
-    if(addrNext == SEARCH_NOT_FOUND)
-        return FALSE;
-    return TRUE;
-}
-
-BOOL CCustomizeTest::GetIQfactOutput(IQFACT_PARAMETER stParameter)
-{
-    int iValue=0;
-    double dbValue=0.0;
-    TCHAR szValue[DLL_INFO_SIZE]={0};
-    TCHAR szMessage[DLL_INFO_SIZE]={0};
-    BOOL bRtn=FALSE;
-
-    if(stParameter.type == IQ_INTERFACE_TYPE_INT){
-        bRtn = GetTestResult(stParameter.name, &iValue, szMessage);
-        sprintf_s(szValue, sizeof(szValue), "%d",iValue);
-        CCommFunc::OutputMsgToBoth(m_cbListMessage, "Output parameter {<%s [%s]  = %s}", stParameter.name, IQFactInterfaceTable[stParameter.type], szValue);
-    }else if(stParameter.type == IQ_INTERFACE_TYPE_DOUBLE){
-        bRtn = GetTestResult(stParameter.name, &dbValue, szMessage);
-        sprintf_s(szValue, sizeof(szValue), "%.6lf",dbValue);
-        CCommFunc::OutputMsgToBoth(m_cbListMessage, "Output parameter {<%s [%s]  = %s}", stParameter.name, IQFactInterfaceTable[stParameter.type], szValue);
-    }else if(stParameter.type == IQ_INTERFACE_TYPE_STRING){
-        bRtn = GetTestResult(stParameter.name, szValue, DLL_INFO_SIZE, szMessage);
-        CCommFunc::OutputMsgToBoth(m_cbListMessage, "Output parameter {<%s [%s]  = %s}", stParameter.name, IQFactInterfaceTable[stParameter.type], szValue);
-    }
-    return bRtn;
-}
 
 BOOL CCustomizeTest::SetParameterToTestManager(IQFACT_PARAMETER stParameter, LPSTR lpszRunInfo)
 {
@@ -1281,6 +1147,7 @@ TM_RETURN CCustomizeTest::LoadRefenceScript(IQFACT_TYPE eType)
 	strCopy(m_ReferenceScript, szData);
 	g_GlobalInfo.technologyID = SyncTechnologyID(m_ReferenceScript);
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "Load IQfact refence script is successful, [Name : %s]", m_ReferenceScript);
+   Fun_619.FileConfig(m_ReferenceScript, "BER_1DH1_PACKETS_LENGTH-VSA_AMPLITUDE_TOLERANCE_DB-VSA_TRIGGER_LEVEL_DB-IQ_ZIGBEE_SIGNAL_VERSION", "=", " 00 - 11 - 333 - 9 ", "");
 	return TM_RETURN_PASS;
 
 NOT_FOUND:
@@ -1747,10 +1614,10 @@ BOOL CCustomizeTest::FileDataToTestLog(OUTPUT_LOG_TYPE eType, LPSTR lpszFileName
 			fclose(stream) ;
 			CCommFunc::SeparateTestLog(Content);
 		}
-        else
-        {
-            return FALSE;
-        }
+      else
+      {
+          return FALSE;
+      }
 		if(Content)	free(Content);
 	}
 	if((eType == OUTPUT_LIST_ONLY) || (eType == OUTPUT_MSG_BOTH))
@@ -1912,8 +1779,14 @@ TM_ID CCustomizeTest::SyncTechnologyID(LPSTR lpszFileName)
 	TCHAR *Content = NULL;
 	TCHAR szMessage[MAX_PATH]={0};
 	TM_ID id;
+    
+   /*for debug 
+   char path[MAX_PATH];
+   sprintf(path, "%s","D:\\template-resource\\source_code\\FunctionDLL\\FT-619_IQTestManager\\bin\\MFGTool-WMDQ-235\\IQTestManager\\ReferenceScript\\Sample.txt");
+	strcpy(lpszFileName, path);
+   */ 
 
-	if((stream = fopen(lpszFileName, _T("rb"))) != NULL)
+   if((stream = fopen(lpszFileName, _T("rb"))) != NULL)
 	{
 		FileNo = _fileno(stream);
 		streamLength = _filelength(FileNo);
@@ -2023,4 +1896,27 @@ BOOL CCustomizeTest::GetBtTestResult(BT_DUT_PARAM BtDutParam, BT_TX_RESULT *resu
 //double ACP_ERR_VALID;
 
 	return TRUE;
+}
+
+BOOL CCustomizeTest::GetIQfactOutput(IQFACT_PARAMETER stParameter)
+{
+   int    iValue=0;
+   double dbValue=0.0;
+   TCHAR  szValue[DLL_INFO_SIZE]={0};
+   TCHAR  szMessage[DLL_INFO_SIZE]={0};
+   BOOL   bRtn=FALSE;
+
+   if(stParameter.type == IQ_INTERFACE_TYPE_INT){
+      bRtn = GetTestResult(stParameter.name, &iValue, szMessage);
+      sprintf_s(szValue, sizeof(szValue), "%d",iValue);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Output parameter {<%s [%s]  = %s}", stParameter.name, IQFactInterfaceTable[stParameter.type], szValue);
+   }else if(stParameter.type == IQ_INTERFACE_TYPE_DOUBLE){
+      bRtn = GetTestResult(stParameter.name, &dbValue, szMessage);
+      sprintf_s(szValue, sizeof(szValue), "%.6lf",dbValue);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Output parameter {<%s [%s]  = %s}", stParameter.name, IQFactInterfaceTable[stParameter.type], szValue);
+   }else if(stParameter.type == IQ_INTERFACE_TYPE_STRING){
+      bRtn = GetTestResult(stParameter.name, szValue, DLL_INFO_SIZE, szMessage);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Output parameter {<%s [%s]  = %s}", stParameter.name, IQFactInterfaceTable[stParameter.type], szValue);
+   }
+   return bRtn;
 }

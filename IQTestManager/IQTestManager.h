@@ -32,11 +32,11 @@ public:
 	BOOL ReadConfigStationIni();
 public:
 	CCustomizeTest		m_CustomizeTest;
-	CGetTargetPower		m_GetTargetPower;
+	CGetTargetPower	m_GetTargetPower;
 	CParserCableLoss	m_ParserCableLoss;
 
 public:
-	TCHAR				m_ActionName[64];
+	TCHAR				   m_ActionName[64];
 	DUT_PARAM			m_DutParamWiFi;
 	EXT_DUT_PARAM		m_ExtDutParam;
 };
