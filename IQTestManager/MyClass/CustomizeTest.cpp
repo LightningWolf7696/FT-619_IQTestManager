@@ -456,6 +456,7 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
     if(g_GlobalInfo.TraceMessage)
     {
         TCHAR referenceScriptBuff[DLL_INFO_SIZE]={0};
+        TCHAR szRunInfo[DLL_INFO_SIZE]={0};
 
         strCopy(referenceScriptBuff, m_ReferenceScript);
         if(strncmp(referenceScriptBuff, _T(".\\"),2) == 0)
@@ -463,7 +464,11 @@ TM_RETURN CCustomizeTest::RunIQTestManager(LPSTR ActionName, DUT_PARAM WifiDutPa
         else		
            strCopy(referenceScriptBuff, m_ReferenceScript);
 
-        if(!Fun_619.LoadOutputIQScriptFile(referenceScriptBuff, ActionName, szMessage)) goto ERRORED;
+        if(!Fun_619.IQScriptOutputFileLoad(referenceScriptBuff, ActionName, szRunInfo)) 
+           goto ERRORED;
+        else
+          CCommFunc::OutputMsgToBoth(m_cbListMessage, "IQfact output parameter Load successful, {RunInfo : %s}", szRunInfo);
+         
         for(int i=0;i<Fun_619.GetIQFactParamArraySize(); ++i){
            IQFACT_PARAMETER var;
            strcpy(var.name, Fun_619.GetIQFactParamArrayDataName(i));
@@ -495,28 +500,28 @@ FAILED:
 		sprintf_s(m_TestParam.ErrorReport.ErrorMsg, sizeof(m_TestParam.ErrorReport.ErrorMsg), "%s,[%s]", m_TestParam.ErrorReport.ErrorMsg, szMessage);
 	}
 	CCommFunc::FillErrorReport(m_pErrorReport, ENABLE_SFCS, m_TestParam.ErrorReport.ErrorCode, szDetail, m_TestParam.ErrorReport.ErrorMsg,  ActionName, TEST_FAIL);
-	return TM_RETURN_FAIL;
+	   return TM_RETURN_FAIL;
    }else
       return TM_RETURN_FAIL;
 
 ERRORED:
    if(eMode == CMODE_IQFACT){
-	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
-	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
-	if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
-	CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, szDetail, szMessage,  ActionName, TEST_FAIL);
-	return TM_RETURN_ERROR;
+	   CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
+	   CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
+	   if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
+	   CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, szDetail, szMessage,  ActionName, TEST_FAIL);
+	   return TM_RETURN_ERROR;
   }else
       return TM_RETURN_ERROR;
 
 NOT_FOUND:
    if(eMode == CMODE_IQFACT){
-	sprintf_s(szMessage, DLL_INFO_SIZE, "Can not find parameter,[Name: %s]", szCmd);
-	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
-	CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
-	if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
-	CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, szDetail, szMessage,  ActionName, TEST_FAIL);
-	return TM_RETURN_ERROR;
+	   sprintf_s(szMessage, DLL_INFO_SIZE, "Can not find parameter,[Name: %s]", szCmd);
+	   CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szDetail);
+	   CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
+	   if(strlen(szMessage)>= DLL_INFO_SIZE)	szMessage[DLL_INFO_SIZE-1] = 0;
+	   CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, szDetail, szMessage,  ActionName, TEST_FAIL);
+	   return TM_RETURN_ERROR;
     }else
       return TM_RETURN_ERROR;
 }
@@ -1147,8 +1152,7 @@ TM_RETURN CCustomizeTest::LoadRefenceScript(IQFACT_TYPE eType)
 	strCopy(m_ReferenceScript, szData);
 	g_GlobalInfo.technologyID = SyncTechnologyID(m_ReferenceScript);
 	CCommFunc::OutputMsgToBoth(m_cbListMessage, "Load IQfact refence script is successful, [Name : %s]", m_ReferenceScript);
-   Fun_619.FileConfig(m_ReferenceScript, "BER_1DH1_PACKETS_LENGTH-VSA_AMPLITUDE_TOLERANCE_DB-VSA_TRIGGER_LEVEL_DB-IQ_ZIGBEE_SIGNAL_VERSION", "=", " 00 - 11 - 333 - 9 ", "");
-	return TM_RETURN_PASS;
+   return TM_RETURN_PASS;
 
 NOT_FOUND:
 	sprintf_s(szMessage, sizeof(szMessage), "Load IQfact refence script is fail, [Name : %s]", szData);
@@ -1690,6 +1694,10 @@ TM_RETURN CCustomizeTest::SyncFileType()
 		return FileDelete();
 	case FILE_TYPE_OUTPUT:
 		return FileOutput();
+   case FILE_TYPE_READ:
+      return FileRead();
+   case FILE_TYPE_EDIT:
+      return FileEdit();
 	default:
 		sprintf_s(szMessage, "Test type not support, [Type : %s]", FileTypeTable[eType]);
 		goto ERRORED;
@@ -1768,6 +1776,107 @@ NOT_FOUND:
 	return TM_RETURN_ERROR;
 }
 
+TM_RETURN CCustomizeTest::FileRead()
+{
+   TCHAR szCmd[MAX_PATH]={0};
+   TCHAR szName[DLL_INFO_SIZE]={0};
+   TCHAR szIndex[DLL_INFO_SIZE]={0};
+   TCHAR szKey[DLL_INFO_SIZE]={0};
+   TCHAR szMessage[DATA_MAX_BUFFER_SIZE]={0};
+   TCHAR szRuninfo[DATA_MAX_BUFFER_SIZE]={0};
+   TCHAR szData[DATA_MAX_BUFFER_SIZE]={0};
+   OUTPUT_LOG_TYPE eMethod;
+
+   strCopy(szCmd, _T("NAME"));
+   if(!GetTestParameter(szCmd, szName, sizeof(szName))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("INDEX"));
+   if(!GetTestParameter(szCmd, szIndex, sizeof(szIndex))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("KEY"));
+   if(!GetTestParameter(szCmd, szKey, sizeof(szKey))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("METHOD"));
+   GetTestParameter(szCmd, szData, sizeof(szData));
+   if(strcmp(szData, _T("LOG")) == NULL)
+      eMethod = OUTPUT_LOG_ONLY;
+   else if(strcmp(szData, _T("SCREEN")) == NULL)
+      eMethod = OUTPUT_LIST_ONLY;
+   else
+      eMethod = OUTPUT_MSG_BOTH;
+
+   CCommFunc::OutputMsgToBoth(m_cbListMessage, "================ Read File : %s ======================", szName);
+   if(!Fun_619.FileRead(szName, szIndex, szKey, szRuninfo))
+   {
+      sprintf_s(szMessage, DLL_INFO_SIZE, "Output File Fail: %s", szName);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Read File Fail: %s", szName);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Info =>{%s}", szRuninfo);
+      CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, _T("T1109"), m_TestParam.ErrorReport.ErrorDetail, szMessage, MODE_FILE_STR, TEST_FAIL);
+      return TM_RETURN_ERROR;
+   }
+   if((eMethod == OUTPUT_LOG_ONLY) || (eMethod == OUTPUT_MSG_BOTH))
+      ExportTestLog("Info =>{%s}", szRuninfo);
+   if((eMethod == OUTPUT_LIST_ONLY) || (eMethod == OUTPUT_MSG_BOTH))
+     CCommFunc::ExportTestMessage(m_cbListMessage, "Info =>{%s}", szRuninfo);
+   return TM_RETURN_PASS;
+
+NOT_FOUND:
+   sprintf_s(szMessage, DLL_INFO_SIZE, "Can not find parameter,[Name: %s]", szCmd);
+   CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
+   CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, m_TestParam.ErrorReport.ErrorDetail, szMessage, MODE_FILE_STR, TEST_FAIL);
+   return TM_RETURN_ERROR;
+}
+
+TM_RETURN CCustomizeTest::FileEdit()
+{
+   TCHAR szCmd[MAX_PATH]={0};
+   TCHAR szName[DLL_INFO_SIZE]={0};
+   TCHAR szIndex[DLL_INFO_SIZE]={0};
+   TCHAR szKey[DLL_INFO_SIZE]={0};
+   TCHAR szMessage[DATA_MAX_BUFFER_SIZE]={0};
+   TCHAR szVar[DATA_MAX_BUFFER_SIZE]={0};
+   TCHAR szRuninfo[DATA_MAX_BUFFER_SIZE]={0};
+   TCHAR szData[DATA_MAX_BUFFER_SIZE]={0};
+   OUTPUT_LOG_TYPE eMethod;
+
+   strCopy(szCmd, _T("NAME"));
+   if(!GetTestParameter(szCmd, szName, sizeof(szName))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("INDEX"));
+   if(!GetTestParameter(szCmd, szIndex, sizeof(szIndex))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("KEY"));
+   if(!GetTestParameter(szCmd, szKey, sizeof(szKey))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("VAR"));
+   if(!GetTestParameter(szCmd, szVar, sizeof(szVar))) goto NOT_FOUND;
+
+   strCopy(szCmd, _T("METHOD"));
+   GetTestParameter(szCmd, szData, sizeof(szData));
+   if(strcmp(szData, _T("LOG")) == NULL)
+      eMethod = OUTPUT_LOG_ONLY;
+   else if(strcmp(szData, _T("SCREEN")) == NULL)
+      eMethod = OUTPUT_LIST_ONLY;
+   else
+      eMethod = OUTPUT_MSG_BOTH;
+
+   CCommFunc::OutputMsgToBoth(m_cbListMessage, "================ Edit File : %s ======================", szName);
+   if(!Fun_619.FileEdit(szName, szIndex, szKey, szVar,szRuninfo))
+   {
+      sprintf_s(szMessage, DLL_INFO_SIZE, "Edit File Fail: %s", szName);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Edit File Fail: %s", szName);
+      CCommFunc::OutputMsgToBoth(m_cbListMessage, "Info =>{%s}", szRuninfo);
+      CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, _T("T1109"), m_TestParam.ErrorReport.ErrorDetail, szMessage, MODE_FILE_STR, TEST_FAIL);
+      return TM_RETURN_ERROR;
+   }
+   return TM_RETURN_PASS;
+
+NOT_FOUND:
+   sprintf_s(szMessage, DLL_INFO_SIZE, "Can not find parameter,[Name: %s]", szCmd);
+   CCommFunc::OutputMsgToBoth(m_cbListMessage, "%s", szMessage);
+   CCommFunc::FillErrorReport(m_pErrorReport, DISABLE_SFCS, ERR_ENVIRONMENT, m_TestParam.ErrorReport.ErrorDetail, szMessage, MODE_FILE_STR, TEST_FAIL);
+   return TM_RETURN_ERROR;
+}
 
 TM_ID CCustomizeTest::SyncTechnologyID(LPSTR lpszFileName)
 {
@@ -1779,12 +1888,6 @@ TM_ID CCustomizeTest::SyncTechnologyID(LPSTR lpszFileName)
 	TCHAR *Content = NULL;
 	TCHAR szMessage[MAX_PATH]={0};
 	TM_ID id;
-    
-   /*for debug 
-   char path[MAX_PATH];
-   sprintf(path, "%s","D:\\template-resource\\source_code\\FunctionDLL\\FT-619_IQTestManager\\bin\\MFGTool-WMDQ-235\\IQTestManager\\ReferenceScript\\Sample.txt");
-	strcpy(lpszFileName, path);
-   */ 
 
    if((stream = fopen(lpszFileName, _T("rb"))) != NULL)
 	{

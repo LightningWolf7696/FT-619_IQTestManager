@@ -5,6 +5,7 @@
 #include "IQTestManager.h"
 #include <iostream>
 #include <string>
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -70,7 +71,6 @@ CIQTestManagerApp::CIQTestManagerApp()
 
 CIQTestManagerApp theApp;
 
-
 // CIQTestManagerApp initialization
 
 BOOL CIQTestManagerApp::InitInstance()
@@ -103,6 +103,7 @@ extern "C" BOOL PASCAL EXPORT LOAD_GUI_INFORMATION(LPSTR lpszOP, LPSTR lpszBarco
 	GetLocalDirectory(g_GlobalInfo.szLocalPath, szMessage);
 	g_GlobalInfo.fAssignVariable = fAssignVariable;
 	strCopy(g_GlobalInfo.PN98, lpszPN);
+   g_GlobalInfo.m_pWnd = CWnd::FromHandle(hParentWnd);
 	return theApp.LoadTestManagerDll(szMessage);
 }
 extern "C" BOOL PASCAL EXPORT RestartDutTest()
@@ -155,9 +156,11 @@ extern "C" BOOL PASCAL EXPORT SetToDutParameter(LPSTR ActionName, LPSTR Paramete
 		else if(strcmp(ParameterName,_T("WAVEFORM_FILE")) == NULL)
 			strCopy(theApp.m_ExtDutParam.WAVEFORM, ParameterValue);
 		bRtn = theApp.m_CustomizeTest.SetParameter(ParameterName, ParameterValue);
-	}
+   }else if(strcmp(ActionName,_T("WIFI_LOAD_DUT_REQUIRED")) == NULL)
+      bRtn = theApp.m_CQDART_APIFun.SetParameter(ParameterName, ParameterValue);
 	return bRtn;
 }
+
 extern "C" BOOL PASCAL EXPORT PreShootToDutParameter(LPSTR ActionName, LPSTR lpszRunInfo)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -175,10 +178,67 @@ extern "C" BOOL PASCAL EXPORT PreShootToDutParameter(LPSTR ActionName, LPSTR lps
 	return TRUE;
 }
 
+//#define WEB 
 
+#define QMSL 
 extern "C" TM_RETURN PASCAL EXPORT CustomizeTest(funcGetMessage cbListMessage, funcGetMessage cbXmlMessage, funcGetMessage cbSfcsSpecMessage, funcGetMessage cbSfcsResultMessage, ERRORREPORT &ErrorReport, int nRetryCnt, BOOL bRetry, ...)
 {
-	return theApp.m_CustomizeTest.Test(cbListMessage, cbXmlMessage, cbSfcsSpecMessage, cbSfcsResultMessage, ErrorReport, nRetryCnt, bRetry);
+   TCHAR szMessage[DLL_INFO_SIZE]={0};
+   vector<string> strResponse;
+   AFX_MANAGE_STATE(AfxGetStaticModuleState());
+#ifdef WEB
+   string m_HTTPInfo="";
+   theApp.m_CHttpClient;
+   // theApp.m_CHttpClient.HttpGet("http://192.168.0.1/cgi-bin/cgi", NULL, strResponse);
+   theApp.m_CHttpClient.HttpPost("http://192.168.0.1/cgi-bin/cgi", "username=admin&password=pass", strResponse);
+   CCommFunc::OutputMsgToBoth(cbListMessage, "%s", "HTTP Message:\n");
+   for(int i=0; i < strResponse.size(); i++){
+      int pos=0;
+      CCommFunc::OutputMsgToBoth(cbListMessage, "%s", _T(strResponse.at(i).c_str()));
+     // if( ((pos = strResponse.at(i).find_first_of("a href=")) != string::npos) && ((pos2 = strResponse.at(i).find_first_of("admin/system/firmware")) != string::npos) ){
+       if( ((pos = strResponse.at(i).find("a href=")) != string::npos) && (strResponse.at(i).find("admin/system/firmware") != string::npos) ){
+          int pos2= strResponse.at(i).find("stok=", pos);
+          int pos3= strResponse.at(i).find("/admin/system/firmware", pos2);
+          int length = pos3 - (pos2+5);
+          m_HTTPInfo = strResponse.at(i).substr((pos2+5),length);
+          cout << "1";
+      }
+   }
+   CCommFunc::OutputMsgToBoth(cbListMessage, "%s", "***************************************************************");
+   strResponse.clear();
+
+   string sendURL = "http://192.168.0.1/cgi-bin/cgi/;stok=" + m_HTTPInfo +  "/admin/system/firmware";
+   char cStr[1024];
+   strcpy(cStr , sendURL.c_str());
+
+   theApp.m_CHttpClient.HttpPost(cStr, "", strResponse);
+   CCommFunc::OutputMsgToBoth(cbListMessage, "%s", "HTTP Message:\n");
+   for(int i=0; i < strResponse.size(); i++){
+       CCommFunc::OutputMsgToBoth(cbListMessage, "%s", _T(strResponse.at(i).c_str()));
+       cout << "1";
+   }
+   CCommFunc::OutputMsgToBoth(cbListMessage, "%s", "***************************************************************");
+  /* if(DEBUG){
+      for(int i=0; i < strResponse.size(); i++)
+          CCommFunc::OutputMsgToBoth(cbListMessage, "%s", _T(strResponse.at(i).c_str()));
+   } */
+  
+	//return theApp.m_CustomizeTest.Test(cbListMessage, cbXmlMessage, cbSfcsSpecMessage, cbSfcsResultMessage, ErrorReport, nRetryCnt, bRetry);
+#endif  
+
+#ifdef QMSL
+   printf("1111");
+   CEdit wEdit;
+   CRect rect(85, 110, 180, 210);
+   wEdit.Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP |
+      ES_AUTOHSCROLL | WS_BORDER, rect, g_GlobalInfo.m_pWnd, 1234);
+   wEdit.SetWindowText("11111");
+   wEdit.SetFocus();
+   printf("1111");
+   theApp.m_CQLibDemo_WLAN_Sample.QLibDemo_WLAN();
+#endif 
+
+   return TM_RETURN_PASS;
 }
 
 
@@ -345,3 +405,16 @@ extern "C" BOOL PASCAL EXPORT BtGetRxPacketCount(BT_DUT_PARAM DutParam, double &
 	dbRxPacketCount = (double)theApp.m_ExtDutParam.PACKET_LENS - (theApp.m_ExtDutParam.PACKET_LENS*BER/100);
 	return bRtn;
 }
+
+#define DEBUG 0
+extern "C" BOOL PASCAL EXPORT LoadDutRequired(BOOL bRetry, LPSTR lpszRunInfo)
+{
+  TCHAR szMessage[DLL_INFO_SIZE]={0};
+  vector<string> strResponse;
+  AFX_MANAGE_STATE(AfxGetStaticModuleState());
+  theApp.m_CHttpClient;
+ // theApp.m_CHttpClient.HttpGet("http://192.168.0.1/cgi-bin/cgi", NULL, strResponse);
+  theApp.m_CHttpClient.HttpPost("http://192.168.0.1/cgi-bin/cgi", "username=admin&password=pass", strResponse);
+  return TRUE;
+}
+

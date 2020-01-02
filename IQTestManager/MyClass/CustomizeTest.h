@@ -1,6 +1,6 @@
 #pragma once
 #include "../CommFunc.h"
-#include "FT619Function.h"
+#include "My_Function.h"
 
 class CCustomizeTest
 {
@@ -53,7 +53,7 @@ private:
 	funcGetMessage					m_cbSfcsSpecMessage;
 	funcGetMessage					m_cbSfcsResultMessage;
 	PERRORREPORT					m_pErrorReport;
-	TCHAR							   m_ReferenceScript[MAX_PATH];
+	TCHAR							m_ReferenceScript[MAX_PATH];
 
 public:
    FT619 Fun_619;
@@ -123,6 +123,8 @@ private:
 	TM_RETURN SyncFileType();
 	TM_RETURN FileDelete();
 	TM_RETURN FileOutput();
+   TM_RETURN FileRead();
+   TM_RETURN FileEdit();
 	TM_ID SyncTechnologyID(LPSTR lpszFileName);
 	BOOL ParseRawData(CString src, double &dest, CString start, CString stop);
 	BOOL ParseRawData(CString src, int &dest, CString start, CString stop);
